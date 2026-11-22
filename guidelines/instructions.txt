@@ -1,0 +1,46 @@
+submit both part 1 and part 2
+
+Important: Make sure you will provide youtube videos walking thru the code snippets as well as user journeys for both the assignments in detailed and link the youtube video in the readme.md of github repo.
+
+ 
+
+Part 1
+
+ 
+
+Your goal is to do EDA, visualization and data preparation and processing of popular kaggle datasets that need to be cleaned and build models (use colab or standalone app - you can use a coding agent for this assignment but you need to explain clearly what is done)
+
+ 
+
+pick data sets one each
+
+i) tabular diverse set of data types like nyc taxi or airbnb (use links i provided in class for inspiration - do not just copy paste the colab)
+
+ii) timeseries - repeat the same tasks
+
+ 
+
+For each
+
+a) do detailed data preprocessing cleaning and all the steps - before that do detailed eda and visualization - Take chat gpt help if needed. you can use auto eda and auto ds together with your manual insights and auto ml 
+b) do clustering and anomaly eliminations in the data sets. do data imputation etc.,. all steps in data preparation including feature processing and feature selection
+c) build various ml models using auto ml - using autoviml
+ 
+
+put all your artifacts (executed colab) in github directory and share the repo url
+
+ 
+
+Part 2:
+
+ 
+
+Use any of the agentic data analysis tools (pick your favorite one) in the slide decks starting 
+
+ 
+
+https://docs.google.com/presentation/d/12V4wXjPd0ymc4tcFSsQdpeQFYdtKwzQglG81nXYEO0k/edit?slide=id.h6feac13f30564201_0_522#slide=id.h6feac13f30564201_0_522Links to an external site.
+
+ 
+
+to do exploratory data analysis using ai agents instead of manually doing it 

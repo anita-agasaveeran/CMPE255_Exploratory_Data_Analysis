@@ -1,0 +1,15 @@
+# OS / editor
+.DS_Store
+.ipynb_checkpoints/
+__pycache__/
+.venv/
+venv/
+
+# Scratch output written next to the notebooks by AutoViML / CatBoost / AutoViz
+# (pickled models, intermediate plots); the executed notebooks hold the results.
+part1/**/is_canceled/
+part1/**/y_rel/
+part1/**/catboost_info/
+part1/**/AutoViz_Plots/
+*.pkl
+*.joblib
