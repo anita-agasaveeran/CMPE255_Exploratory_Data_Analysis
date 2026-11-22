@@ -32,13 +32,13 @@ Assignment for CMPE 255 (Data Mining), SJSU, Fall 2026.
 |---|---|---|
 | **a) EDA and visualisation** | Schema and missingness audit, impossible values, **systematic leakage scan** (finds `required_car_parking_spaces` and the suspect `country`), **duplicate analysis** (duplicates are mostly cancelled group blocks), distributions, cancellation drivers, seasonality, countries, Spearman correlations | Coverage over time, price distributions, trend and volume, sales seasonality, postcode × year heatmap, STL decomposition, ADF stationarity tests, ACF/PACF, cross-check against the publisher's moving average |
 | **Auto-EDA** | AutoViz | AutoViz |
-| **b) Cleaning** | Drop duplicate rows, outcome and leaky columns, zero-guest bookings; normalise categories; ID columns → categorical. **Sensitivity checks** measure what the split strategy, deduplication and leaky features each do to the score | Implausible bedroom counts; transaction price anomalies (modified z-score within peer groups); irregular dates → weekly series |
-| **Imputation** | Rule-based fills plus an **empirical comparison** of global median, group median and **KNN** for price | **KNN classifier** for bedrooms; empirical comparison of forward-fill, linear and rolling-median for missing weeks |
+| **b) Cleaning** | Drop duplicate rows, outcome and leaky columns, zero-guest bookings; normalise categories; ID columns → categorical. **Sensitivity checks** measure what the split strategy, deduplication and leaky features each do to the score | Implausible bedroom counts; transaction price anomalies judged against the **same postcode × type × bedrooms and quarter**, with thresholds learned on training years (a postcode-blind rule would have deleted 683 genuine luxury sales); irregular dates → weekly series |
+| **Imputation** | Rule-based fills plus an **empirical comparison** of global median, group median and **KNN** for price | **KNN classifier** for bedrooms; empirical comparison of four methods for missing weeks, restricted to **causal** ones, because the filled values feed lag features |
 | **Anomaly elimination** | IQR (shown to be too aggressive) vs **Isolation Forest** (removed, train only) | Modified z-score (transactions) + Isolation Forest cross-check; **robust STL residuals** (weekly series, train only) |
 | **Clustering** | K-Means guest segments (elbow + silhouette) → new feature | K-Means postcodes by price-growth trajectory → cluster-level lag features |
 | **Feature engineering** | Stay length, party size, price per person, booking history, top-N country and agent, … | Relative lags (1–52 weeks), momentum, volatility, volume, unit-price and cluster signals, calendar |
 | **Feature selection** | Quasi-constant, correlation redundancy, mutual information vs a **random-probe noise floor** | Correlation redundancy, mutual information vs random-probe noise floor |
-| **c) AutoML** | AutoViML × 4 model families (linear, random forest, XGBoost, CatBoost) + ensemble members vs scikit-learn baselines | AutoViML × 4 model families + ensemble members vs naive forecasting baselines |
+| **c) AutoML** | AutoViML × 4 model families (linear, random forest, XGBoost, CatBoost) + ensemble members vs scikit-learn baselines | AutoViML × 4 model families + ensemble members vs naive forecasting baselines, then a **2013–2019 walk-forward** with **Diebold-Mariano tests** (Holm-adjusted) and block-bootstrap confidence intervals |
 
 Leakage is prevented throughout. Everything learned from data (imputers, scalers, anomaly detectors, clusters, feature selection) is fit on the **training split only**. **Both notebooks use a chronological split** (train on the past, test on later data), and the time-series features only use information from earlier weeks.
 
@@ -59,14 +59,17 @@ All numbers are on held-out test data the models never saw.
 
 These numbers are deliberately lower than a naive setup. On the training period, the sensitivity checks show that a random split with duplicates kept scores **0.955 ROC AUC**, against **0.856** for the honest chronological split. Removing the leaky parking and suspect country features costs another 0.04. The test period is also harder: its cancellation rate is 34.7%, against 25.7% in training.
 
-**Weekly median house price** (114 test weeks, May 2017 to Jul 2019)
+**Weekly median house price.** Holdout: 110 observed test weeks, May 2017 to Jul 2019.
 
-| Model | MAE | MAPE |
+| Model | Holdout MAE | Holdout MAPE |
 |---|---|---|
-| Naive (last week) | $33,016 | 5.01% |
-| MA-13 (best naive baseline) | $28,873 | 4.36% |
-| AutoViML Random Forest (best single AutoViML model) | $27,123 | 4.12% |
-| **AutoViML Linear → ensemble** | **$26,629** | **4.06%** |
+| Naive (last week) | $36,129 | 5.43% |
+| MA-13 (best naive baseline) | $30,597 | 4.58% |
+| AutoViML XGBoost | $32,187 | 4.83% |
+| AutoViML Linear | $28,831 | 4.34% |
+| **AutoViML Random Forest** | **$28,353** | **4.27%** |
+
+**Walk-forward check.** Each year from 2013 to 2019 (331 weeks), the models are retrained on all earlier weeks and forecast that year. Only **AutoViML Random Forest** beats MA-13 significantly: its MAE is $1,547 lower (95% CI $535–$2,762, Holm-adjusted p = 0.021). The CatBoost gain ($985) is not significant after correction, Linear ties with MA-13, and XGBoost is significantly *worse*.
 
 _TODO (you): add your interpretation._
 
