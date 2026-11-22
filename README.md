@@ -5,7 +5,7 @@ Assignment for CMPE 255 (Data Mining), SJSU, Fall 2026.
 | Part | What | Status |
 |---|---|---|
 | **Part 1** | Manual + automated EDA, data cleaning and preparation, clustering, anomaly removal, imputation, feature engineering and selection, and AutoML (AutoViML) on a **tabular** and a **time-series** Kaggle dataset | ✅ notebooks executed |
-| **Part 2** | EDA done by an **AI data-analysis agent** instead of by hand | ⏳ to do |
+| **Part 2** | EDA done by an **AI data-analysis agent** instead of by hand | 🧩 scaffolded; needs an LLM API key to run |
 
 ## 🎥 Video walkthroughs
 
@@ -95,12 +95,14 @@ jupyter lab
 data/
   hotel_bookings.csv
   property_sales/raw_sales.csv, ma_lga_12345.csv
-  student_grade_ses_dataset.csv           # reserved for Part 2
+  student_grade_ses_dataset.csv           # Part 2
 part1/
   requirements.txt
   tabular_hotel_bookings/hotel_bookings_eda_prep_automl.ipynb
   timeseries_property_sales/property_sales_eda_prep_automl.ipynb
-part2/                                    # agentic EDA (to do)
+part2/
+  requirements.txt                        # separate env from Part 1
+  student_agentic_eda.ipynb
 guidelines/                               # assignment instructions
 ```
 
@@ -112,4 +114,15 @@ _TODO (you): describe how a coding agent was used to build these notebooks and w
 
 ## Part 2: Agentic EDA
 
-_To do. Planned dataset: [`student_grade_ses_dataset.csv`](data/student_grade_ses_dataset.csv), analysed with one of the agentic data-analysis tools from the course slides._
+| | |
+|---|---|
+| **Tool** | [business-science/ai-data-science-team](https://github.com/business-science/ai-data-science-team) (from the course slides): specialised LangChain/LangGraph agents that take natural-language instructions, choose tools or write and run pandas/plotly code, and explain the results |
+| **Dataset** | [`student_grade_ses_dataset.csv`](data/student_grade_ses_dataset.csv): 12,025 students × 29 columns (socio-economic status, study habits, attendance, grades) |
+| **Question** | What drives student performance, and which students are at risk? |
+| **Notebook** | [`student_agentic_eda.ipynb`](part2/student_agentic_eda.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/anita-agasaveeran/CMPE255_Exploratory_Data_Analysis/blob/main/part2/student_agentic_eda.ipynb) |
+
+**Agent workflow:** EDA Tools Agent (overview, statistics, missingness, Sweetviz) → Data Cleaning Agent (writes and runs a cleaning function) → EDA Tools Agent on the cleaned data (correlation funnel for at-risk students) → Data Visualization Agent → Pandas Data Analyst (multi-agent wrangling + charts) → Feature Engineering Agent. The notebook then **independently re-checks the agents' claims with plain pandas**, shows a run log of every prompt with its runtime and token cost, and compares agentic EDA with the manual EDA from Part 1.
+
+**Running it:** an LLM is required. The default is OpenAI `gpt-4o-mini` (the library's default): add `OPENAI_API_KEY` as a Colab secret, or export it locally. A free local model via Ollama also works. Without a key, the notebook still runs its non-agent parts. Install into a **separate environment** from Part 1 with `pip install -r part2/requirements.txt`.
+
+**Library bugs patched in the notebook:** version 0.0.0.9017 has two bugs that crash agents in normal use. Agents given `user_instructions` hit an `AttributeError`, and the visualisation agent's retry path hits an `re.error`. Both are patched at runtime in section 0.1, with an explanation.

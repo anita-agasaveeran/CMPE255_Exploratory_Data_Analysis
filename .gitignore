@@ -13,3 +13,7 @@ part1/**/catboost_info/
 part1/**/AutoViz_Plots/
 *.pkl
 *.joblib
+
+# Part 2: files written by the agents at runtime (generated code logs, Sweetviz HTML)
+part2/agent_logs/
+part2/pipeline_reports/
