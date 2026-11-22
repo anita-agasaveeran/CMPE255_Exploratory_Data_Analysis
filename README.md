@@ -30,9 +30,9 @@ Assignment for CMPE 255 (Data Mining), SJSU, Fall 2026.
 
 | Assignment step | Tabular: Hotel Bookings | Time series: Property Sales |
 |---|---|---|
-| **a) EDA and visualisation** | Schema and missingness audit, duplicates, impossible values, **target-leakage check**, distributions, cancellation drivers, seasonality, countries, Spearman correlations | Coverage over time, price distributions, trend and volume, sales seasonality, postcode × year heatmap, STL decomposition, ADF stationarity tests, ACF/PACF, cross-check against the publisher's moving average |
+| **a) EDA and visualisation** | Schema and missingness audit, impossible values, **systematic leakage scan** (finds `required_car_parking_spaces` and the suspect `country`), **duplicate analysis** (duplicates are mostly cancelled group blocks), distributions, cancellation drivers, seasonality, countries, Spearman correlations | Coverage over time, price distributions, trend and volume, sales seasonality, postcode × year heatmap, STL decomposition, ADF stationarity tests, ACF/PACF, cross-check against the publisher's moving average |
 | **Auto-EDA** | AutoViz | AutoViz |
-| **b) Cleaning** | Drop 27% duplicate rows, leakage columns, zero-guest bookings; normalise categories; ID columns → categorical | Implausible bedroom counts; transaction price anomalies (modified z-score within peer groups); irregular dates → weekly series |
+| **b) Cleaning** | Drop duplicate rows, outcome and leaky columns, zero-guest bookings; normalise categories; ID columns → categorical. **Sensitivity checks** measure what the split strategy, deduplication and leaky features each do to the score | Implausible bedroom counts; transaction price anomalies (modified z-score within peer groups); irregular dates → weekly series |
 | **Imputation** | Rule-based fills plus an **empirical comparison** of global median, group median and **KNN** for price | **KNN classifier** for bedrooms; empirical comparison of forward-fill, linear and rolling-median for missing weeks |
 | **Anomaly elimination** | IQR (shown to be too aggressive) vs **Isolation Forest** (removed, train only) | Modified z-score (transactions) + Isolation Forest cross-check; **robust STL residuals** (weekly series, train only) |
 | **Clustering** | K-Means guest segments (elbow + silhouette) → new feature | K-Means postcodes by price-growth trajectory → cluster-level lag features |
@@ -40,22 +40,24 @@ Assignment for CMPE 255 (Data Mining), SJSU, Fall 2026.
 | **Feature selection** | Quasi-constant, correlation redundancy, mutual information vs a **random-probe noise floor** | Correlation redundancy, mutual information vs random-probe noise floor |
 | **c) AutoML** | AutoViML × 4 model families (linear, random forest, XGBoost, CatBoost) + ensemble members vs scikit-learn baselines | AutoViML × 4 model families + ensemble members vs naive forecasting baselines |
 
-Leakage is prevented throughout. Everything learned from data (imputers, scalers, anomaly detectors, clusters, feature selection) is fit on the **training split only**. The time series uses a **chronological** split, and its features only use information from earlier weeks.
+Leakage is prevented throughout. Everything learned from data (imputers, scalers, anomaly detectors, clusters, feature selection) is fit on the **training split only**. **Both notebooks use a chronological split** (train on the past, test on later data), and the time-series features only use information from earlier weeks.
 
 ### Headline results
 
 All numbers are on held-out test data the models never saw.
 
-**Hotel cancellations** (17,446 test bookings after deduplication)
+**Hotel cancellations** (17,544 deduplicated test bookings arriving 2 May – 31 Aug 2017; trained on earlier arrivals)
 
 | Model | Balanced accuracy | ROC AUC |
 |---|---|---|
 | Majority-class baseline | 0.500 | n/a |
-| Logistic regression baseline | 0.728 | 0.861 |
-| AutoViML Linear | 0.717 | 0.791 |
-| AutoViML Random Forest | 0.792 | 0.878 |
-| AutoViML XGBoost | 0.819 | **0.909** |
-| **AutoViML CatBoost** | **0.819** | 0.907 |
+| Logistic regression baseline | 0.677 | 0.769 |
+| AutoViML Linear | 0.647 | 0.719 |
+| AutoViML Random Forest | 0.688 | 0.755 |
+| AutoViML XGBoost | 0.702 | **0.777** |
+| **AutoViML CatBoost** | **0.702** | 0.777 |
+
+These numbers are deliberately lower than a naive setup. On the training period, the sensitivity checks show that a random split with duplicates kept scores **0.955 ROC AUC**, against **0.856** for the honest chronological split. Removing the leaky parking and suspect country features costs another 0.04. The test period is also harder: its cancellation rate is 34.7%, against 25.7% in training.
 
 **Weekly median house price** (114 test weeks, May 2017 to Jul 2019)
 
