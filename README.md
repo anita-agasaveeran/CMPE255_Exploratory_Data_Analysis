@@ -131,4 +131,10 @@ _TODO (you): describe how a coding agent was used to build these notebooks and w
 
 **Running it:** an LLM is required. The default is OpenAI `gpt-4o-mini` (the library's default): add `OPENAI_API_KEY` as a Colab secret, or export it locally. A free local model via Ollama also works. Without a key, the notebook still runs its non-agent parts. Install into a **separate environment** from Part 1 with `pip install -r part2/requirements.txt`.
 
-**Library bugs patched in the notebook:** version 0.0.0.9017 has two bugs that crash agents in normal use. Agents given `user_instructions` hit an `AttributeError`, and the visualisation agent's retry path hits an `re.error`. Both are patched at runtime in section 0.1, with an explanation.
+**Library bugs patched in the notebook:** version 0.0.0.9017 has three bugs that break agents in normal use:
+
+- Agents given `user_instructions` hit an `AttributeError`.
+- The visualisation agent's retry path hits an `re.error`.
+- If LLM-written code calls `print()`, the library pastes the agent's full output table (millions of tokens) into its fix-the-code prompt, and OpenAI rejects it with a 429 *request too large* error.
+
+All three are patched at runtime in section 0.1, with an explanation.
