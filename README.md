@@ -37,7 +37,7 @@ Assignment for CMPE 255 (Data Mining), SJSU, Fall 2026.
 | **Anomaly elimination** | IQR (shown to be too aggressive) vs **Isolation Forest** (removed, train only) | Modified z-score (transactions) + Isolation Forest cross-check; **robust STL residuals** (weekly series, train only) |
 | **Clustering** | K-Means guest segments (elbow + silhouette) → new feature | K-Means postcodes by price-growth trajectory → cluster-level lag features |
 | **Feature engineering** | Stay length, party size, price per person, booking history, top-N country and agent, … | Relative lags (1–52 weeks), momentum, volatility, volume, unit-price and cluster signals, calendar |
-| **Feature selection** | Quasi-constant, correlation redundancy, mutual information vs a **random-probe noise floor** | Correlation redundancy, mutual information vs random-probe noise floor |
+| **Feature selection** | Quasi-constant, correlation redundancy, mutual information vs a **random-probe noise floor** | **Permutation importance over time-ordered CV folds** vs a random-probe noise floor; the feature set (all / above noise / top 5 / top 10) is **chosen by time-ordered CV error** |
 | **c) AutoML** | AutoViML × 4 model families (linear, random forest, XGBoost, CatBoost) + ensemble members vs scikit-learn baselines | AutoViML × 4 model families + ensemble members vs naive forecasting baselines, then a **2013–2019 walk-forward** with **Diebold-Mariano tests** (Holm-adjusted) and block-bootstrap confidence intervals |
 
 Leakage is prevented throughout. Everything learned from data (imputers, scalers, anomaly detectors, clusters, feature selection) is fit on the **training split only**. **Both notebooks use a chronological split** (train on the past, test on later data), and the time-series features only use information from earlier weeks.
@@ -65,9 +65,10 @@ These numbers are deliberately lower than a naive setup. On the training period,
 |---|---|---|
 | Naive (last week) | $36,129 | 5.43% |
 | MA-13 (best naive baseline) | $30,597 | 4.58% |
-| AutoViML XGBoost | $32,187 | 4.83% |
-| AutoViML Linear | $28,831 | 4.34% |
-| **AutoViML Random Forest** | **$28,353** | **4.27%** |
+| AutoViML XGBoost | $32,076 | 4.81% |
+| AutoViML Linear | $31,516 | 4.79% |
+| AutoViML Random Forest | $28,870 | 4.35% |
+| **AutoViML CatBoost** | **$28,684** | **4.32%** |
 
 **Walk-forward check.** Each year from 2013 to 2019 (331 weeks), the models are retrained on all earlier weeks and forecast that year. Only **AutoViML Random Forest** beats MA-13 significantly: its MAE is $1,547 lower (95% CI $535–$2,762, Holm-adjusted p = 0.021). The CatBoost gain ($985) is not significant after correction, Linear ties with MA-13, and XGBoost is significantly *worse*.
 
